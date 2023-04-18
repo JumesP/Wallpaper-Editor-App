@@ -31,11 +31,9 @@ EDITOR NOTES:
     even thought prices shouldn't be too hard!
 
     sooo today's TO-DO
-        - Make add to checkout button pop the page ---DONE!---
-        - see if you can prevent multiple pages to open at once?? --WIP?-- maybe not worth it??
-        - create class on open p1 or p2, import it to the options page, then save it as a dictionary,
-          then throw it in the checkout.
-        - simple!
+        - Colours!!!
+        = construct and install orders into the checkout page
+
         - Also shrink down the on clicks, maybe make alot of them in an options change function
 '''
 from tkinter import *
@@ -43,15 +41,14 @@ from tkinter import ttk
 
 
 class Wallpaper:
-    def __init__(self, pattern, colour, length, extras, expensive, lining, paste):
+    def __init__(self, pattern, colour, length, extras, quality, lining, paste):
         self.pattern = pattern
         self.colour = colour
         self.length = length
         self.extra = extras
-        self.expensive = expensive
+        self.quality = quality
         self.lining = lining
         self.paste = paste
-
 
 # Initialising Window
 main_window = Tk()  # Creates main window
@@ -67,8 +64,8 @@ main_window.rowconfigure(2, weight=0)
 
 colours = ["purple", "darkSlateGray4", "deepSkyBlue", "lightSeaGreen", "violetRed2", "gold"]
 order = {}
-global order_reference_num
 order_reference_num = 0
+
 
 def Header():
     header = Frame(main_window, height=66, width=5, bg="#484848")
@@ -119,6 +116,8 @@ def CreatePattern1(pattern1):
     #         pattern1.create_polygon(pattern1_Locations, fill='#7B48DD', outline='black', width=2)     # Creating pattern
     #         print(pattern1_Locations)
 # ^ Just the Design!
+
+
 def Pattern1(location):
     pattern1 = Canvas(location, name="pattern1", height=200, width=200, bg="#484848")
     pattern1.grid(row=1, column=0, pady=50, padx=50)
@@ -164,7 +163,7 @@ def Homepage_Prices():  # Homepage display
 
 
 def pattern1_selected():  # Opens a page to specify an order of wallpaper patter 1
-    pattern1_page = Tk()
+    pattern1_page = Toplevel()
     pattern1_page.title("Pattern One")
     pattern1_page.geometry("680x360")
 
@@ -178,7 +177,7 @@ def pattern1_selected():  # Opens a page to specify an order of wallpaper patter
 # ^ Opens a page to specify an order of wallpaper patter 1
 
 def pattern2_selected():  # Opens a page to specify an order of wallpaper pattern 2
-    pattern2_page = Tk()
+    pattern2_page = Toplevel()
     pattern2_page.title("Pattern Two")
     pattern2_page.geometry("680x360")
 
@@ -193,8 +192,9 @@ def pattern2_selected():  # Opens a page to specify an order of wallpaper patter
 
 
 def checkout_selected():    # Creating The Checkout Page
-    checkout_page = Tk()
+    checkout_page = Toplevel()
     checkout_page.title("Checkout")
+    checkout_page.geometry("300x300")
 
     for customwallpaper in order:
         print(customwallpaper, order[customwallpaper])
@@ -207,31 +207,33 @@ def checkout_selected():    # Creating The Checkout Page
 # ^ Creating The Checkout Page
 
 def menu_selected():    # Creating The Menu Page
-    menu_page = Tk()
-    menu_page.title("Checkout")
+    menu_page = Toplevel()
+    menu_page.title("Menu")
 # ^ Creating The Menu Page
 
 
 def Options(location):
-    options = Frame(location, relief=RIDGE, width=100, name="options")
-    options.grid(row=1, column=2, pady=50, padx=50)
+    global lining, paste
+    lining = IntVar()
+    paste = IntVar()
+
+    options = Frame(location, width=100, name="options")
+    options.grid(row=1, column=2, pady=20, padx=50)
 
     options.columnconfigure(0, weight=1)
     options.columnconfigure(1, weight=1)
     options.rowconfigure(0, weight=1)
     options.rowconfigure(1, weight=2)
 
-    # colour_selector(options)
-
-    colour_selector = Frame(options, bg="blue", width=100, height=100)  # DEFO LATER PROBLEM
-    colour_selector.grid(row=0, column=0, columnspan=2, sticky="news")
+    colour_selector(options)
 
     # Length of the Wallpaper
     length_label = Label(options, text="Length (M):")
-    length_label.grid(row=1, column=0, pady="3", sticky="news")
+    length_label.grid(row=1, column=0, pady=3, sticky="news")
 
     length_entry = Entry(options, width=10, bg="#484848", name="length")
-    length_entry.grid(row=1, column=1, pady="3", sticky="news")
+    length_entry.grid(row=1, column=1, pady=3, sticky="news")
+    length_entry.bind("<KeyRelease>", Wallpaper_Editor)
 
     # Quality of the Wallpaper
     quality_label = Label(options, text="Paper:")
@@ -239,46 +241,60 @@ def Options(location):
 
     quality_combo = ttk.Combobox(options, values=["Standard Paper", "Expensive Paper"],
                                  state="readonly", name="quality")
-    quality_combo.grid(row=2, column=1, pady="3", sticky="news")
+    quality_combo.grid(row=2, column=1, pady=3, sticky="news")
+    quality_combo.bind("<<ComboboxSelected>>", Wallpaper_Editor)
 
     # Extras for the Wallpaper
     extras_label = Label(options, text="Extras:")
-    extras_label.grid(row=3, column=0, pady="3", sticky="news")
+    extras_label.grid(row=3, column=0, pady=3, sticky="news")
 
-    extras_combo = ttk.Combobox(options, values=["Foil", "Glitter", "Embossing"], state="readonly", name="extras")
-    extras_combo.grid(row=3, column=1, pady="3", sticky="news")
+    extras_combo = ttk.Combobox(options, values=["None", "Foil", "Glitter", "Embossing"],
+                                state="readonly", name="extras")
+    extras_combo.grid(row=3, column=1, pady=3, sticky="news")
+    extras_combo.bind("<<ComboboxSelected>>", Wallpaper_Editor)
 
     # Lining for the Wallpaper
     lining_label = Label(options, text="Lining required?")
-    lining_label.grid(row=4, column=0, pady="3", sticky="n")
+    lining_label.grid(row=4, column=0, pady=3, sticky="n")
 
-    lining_tick = ttk.Checkbutton(options, name="lining")
-    lining_tick.grid(row=4, column=1, pady="3")
+    lining_tick = ttk.Checkbutton(options, name="lining", variable=lining)
+    lining_tick.grid(row=4, column=1, pady=3)
+    lining_tick.bind("<Button>", Wallpaper_Editor)
 
     # Paste for the Wallpaper
     paste_label = Label(options, text="Paste required?")
-    paste_label.grid(row=5, column=0, pady="3", sticky="n")
+    paste_label.grid(row=5, column=0, pady=3, sticky="n")
 
-    paste_tick = ttk.Checkbutton(options, name="paste")
-    paste_tick.grid(row=5, column=1, pady="3")
-    paste_tick.bind()
+    paste_tick = ttk.Checkbutton(options, name="paste", variable=paste)
+    paste_tick.grid(row=5, column=1, pady=3)
+    paste_tick.bind("<Button>", Wallpaper_Editor)
 
     # Add to Checkout Button
     add_to_checkout_button = Button(options, text="Add to Checkout", height=2, width=10,
                                     name="add_to_checkout_button", command=location.destroy)
-    add_to_checkout_button.grid(row=6, column=1, pady="3", sticky="n")
+    add_to_checkout_button.grid(row=6, column=1, pady=3, sticky="n")
     add_to_checkout_button.bind("<Button-1>", add_to_checkout_button_clicked)
 # ^ Adds options to custom order
 
-def colour_selector(location):
-    pass
+def colour_selector(options):
+    colour_selector = Frame(options, bg="blue", width=100, height=100)  # DEFO LATER PROBLEM
+    colour_selector.grid(row=0, column=0, columnspan=2, sticky="news")
+
+    for z in range(len(colours)):
+        colour_box = Canvas(colour_selector, width=100, height=50, name=colours[z].lower())
+        colour_box.create_rectangle(0, 0, 100, 50, outline="black", fill=colours[z])
+        if z > 2:       # If statement to make the colour squares spread across 2 lines
+            x, y = z - 3, 1
+        else:
+            x, y = z, 0
+        colour_box.grid(row=y, column=x, sticky="")
+
 # ^ Colour Selector for Options
 
 
 def Homepage_clicked(event):
     if event.widget._name == "pattern1":
         print(event.widget._name + " clicked")
-        edit = Wallpaper
         pattern1_selected()
 
     elif event.widget._name == "pattern2":
@@ -291,7 +307,7 @@ def Homepage_clicked(event):
 
     elif event.widget._name == "menu_button":
         print(event.widget._name + " clicked")
-        checkout_selected()
+        menu_selected()
 # ^ On click Events
 
 def add_to_checkout_button_clicked(event):  # Adding the edited wallpaper to the checkout
@@ -299,43 +315,51 @@ def add_to_checkout_button_clicked(event):  # Adding the edited wallpaper to the
     storeEdit()
 
 def Wallpaper_Editor(event):
-    global lining, paste, edit
-
     if event.widget._name == "length":
         edit.length = event.widget.get()
+        print(edit.length)
 
-    elif event.widget._name == "expensive":
-        edit.expensive = event.widget.get()
+    elif event.widget._name == "quality":
+        if event.widget.get() == "Standard Paper":
+            edit.quality = "Standard"
+        else:
+            edit.quality = "Expensive"
+        print(edit.quality)
 
     elif event.widget._name == "extras":
         edit.extra = event.widget.get()
+        print(edit.extra)
 
     elif event.widget._name == "lining":
-        if (lining.get() == 0):
+        if lining.get() == 0:
             edit.lining = True
         else:
             edit.lining = False
+        print(edit.lining)
 
     elif event.widget._name == "paste":
-        if (paste.get() == 0):
+        if paste.get() == 0:
             edit.paste = True
         else:
             edit.paste = False
+        print(edit.paste)
 
-    print(edit)
+    #print(edit)
 
 def storeEdit():
-    global order_reference_num, order
+    global order_reference_num, order, edit
     order_id = "DIY00" + str(order_reference_num)
     order_reference_num += 1
-    order[order_id] = edit.pattern, edit.colour, edit.length, edit.extra, edit.expensive, edit.lining, edit.paste
+    order[order_id] = edit.pattern, edit.colour, edit.length, edit.extra, edit.quality, edit.lining, edit.paste
+    edit = Wallpaper("pattern1", "purple", 1, "None", "Expensive", False, False)    # resetting the edit for the next wallpaper
+
 def Homepage():
     Header()
     Pattern1(location=main_window)
     Pattern2(location=main_window)
     # Homepage_Prices()
 
-edit = Wallpaper("pattern1", "purple", 1, "None", False, False, False)
+edit = Wallpaper("pattern1", "purple", 1, "None", "Expensive", False, False)
 
 Homepage()
 main_window.mainloop()
